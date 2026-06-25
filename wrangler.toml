@@ -15,5 +15,5 @@ build = { command = "cargo install worker-build@^0.1 && worker-build --dev" }
 
 [vars]
 UUID = "cb20a12f-2641-4b9f-9a49-926a1936861c"
-MAIN_PAGE_URL = "https://raw.githubusercontent.com/hounna19/newrepo/refs/heads/master/web/index.html"
-SUB_PAGE_URL = "https://raw.githubusercontent.com/hounna19/newrepo/refs/heads/master/web/sub.html"
+MAIN_PAGE_URL = "https://raw.githubusercontent.com/hounna19/babi/refs/heads/main/web/index.html"
+SUB_PAGE_URL = "https://raw.githubusercontent.com/hounna19/babi/refs/heads/main/web/sub.html"

@@ -1,11 +1,11 @@
-name = "twiceday"
+name = "glocer-3262"
 main = "build/worker/shim.mjs"
 compatibility_date = "2024-05-23"
 minify = true
 
 [[kv_namespaces]]
 binding = "SIREN"
-id = "3e3805dd8e8649b8a34b050eac663e98"
+id = "2da1f3cc37f745d8af7cc0d8ac6c87a8"
 
 [build]
 command = "cargo install worker-build@^0.1 && worker-build --release"
@@ -14,6 +14,6 @@ command = "cargo install worker-build@^0.1 && worker-build --release"
 build = { command = "cargo install worker-build@^0.1 && worker-build --dev" }
 
 [vars]
-UUID = "cb20a12f-2641-4b9f-9a49-926a1936861c"
+UUID = "50337370-a877-4e2b-9e06-bf846078600f"
 MAIN_PAGE_URL = "https://raw.githubusercontent.com/hounna19/babi/refs/heads/main/web/index.html"
 SUB_PAGE_URL = "https://raw.githubusercontent.com/hounna19/babi/refs/heads/main/web/sub.html"

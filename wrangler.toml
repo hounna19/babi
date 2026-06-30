@@ -1,4 +1,4 @@
-name = "glocer-3262"
+name = "berbegue-22"
 main = "build/worker/shim.mjs"
 compatibility_date = "2024-05-23"
 minify = true
@@ -14,6 +14,6 @@ command = "cargo install worker-build@^0.1 && worker-build --release"
 build = { command = "cargo install worker-build@^0.1 && worker-build --dev" }
 
 [vars]
-UUID = "50337370-a877-4e2b-9e06-bf846078600f"
+UUID = "a4e85535-1c99-47d3-b036-6a471ecfb1cf"
 MAIN_PAGE_URL = "https://raw.githubusercontent.com/hounna19/babi/refs/heads/main/web/index.html"
 SUB_PAGE_URL = "https://raw.githubusercontent.com/hounna19/babi/refs/heads/main/web/sub.html"

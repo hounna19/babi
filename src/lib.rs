@@ -182,10 +182,11 @@ async fn tunnel(req: Request, mut cx: RouteContext<Config>) -> Result<Response> 
             let events = match server.events() {
                 Ok(v) => v,
                 Err(e) => {
-                    console_error!("{}", e);
-                    return Response::error("WebSocket error", 500);
+                    console_error!("WebSocket events error: {}", e);
+                    return;
                 }
             };
+        
             if let Err(e) = ProxyStream::new(cx.data, &server, events).process().await {
                 console_error!("[tunnel]: {}", e);
             }

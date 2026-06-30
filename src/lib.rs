@@ -22,8 +22,15 @@ async fn main(req: Request, env: Env, _: Context) -> Result<Response> {
         .var("UUID")
         .map(|x| Uuid::parse_str(&x.to_string()).unwrap_or_default())?;
     let host = req.url()?.host().map(|x| x.to_string()).unwrap_or_default();
-    let main_page_url = env.var("MAIN_PAGE_URL").map(|x|x.to_string()).unwrap();
-    let sub_page_url = env.var("SUB_PAGE_URL").map(|x|x.to_string()).unwrap();
+    let main_page_url = env
+        .var("MAIN_PAGE_URL")
+        .map(|x| x.to_string())
+        .unwrap_or_default();
+    
+    let sub_page_url = env
+        .var("SUB_PAGE_URL")
+        .map(|x| x.to_string())
+        .unwrap_or_default();
     let config = Config { uuid, host: host.clone(), proxy_addr: host, proxy_port: 443, main_page_url, sub_page_url };
 
     Router::with_data(config)
@@ -42,7 +49,12 @@ async fn main(req: Request, env: Env, _: Context) -> Result<Response> {
 }
 
 async fn get_response_from_url(url: String) -> Result<Response> {
-    let req = Fetch::Url(Url::parse(url.as_str())?);
+    let parsed = match Url::parse(url.as_str()) {
+        Ok(v) => v,
+        Err(_) => return Response::error("Invalid URL", 500),
+    };
+    
+    let req = Fetch::Url(parsed);
     let mut res = req.send().await?;
     Response::from_html(res.text().await?)
 }
@@ -107,7 +119,9 @@ async fn tunnel(req: Request, mut cx: RouteContext<Config>) -> Result<Response> 
         let kv = cx.kv("SIREN")?;
         let mut proxy_kv_str = kv.get("proxy_kv").text().await?.unwrap_or("".to_string());
         let mut rand_buf = [0u8, 1];
-        getrandom::getrandom(&mut rand_buf).expect("failed generating random number");
+        if getrandom::getrandom(&mut rand_buf).is_err() {
+            rand_buf[0] = 0;
+        }
         
         if proxy_kv_str.len() == 0 {
             console_log!("getting proxy kv from github...");
@@ -121,15 +135,30 @@ async fn tunnel(req: Request, mut cx: RouteContext<Config>) -> Result<Response> 
             }
         }
         
-        let proxy_kv: HashMap<String, Vec<String>> = serde_json::from_str(&proxy_kv_str)?;
+        let proxy_kv: HashMap<String, Vec<String>> =
+            match serde_json::from_str(&proxy_kv_str) {
+                Ok(v) => v,
+                Err(e) => {
+                    console_error!("JSON error: {}", e);
+                    return Response::error("Invalid proxy_kv JSON", 500);
+                }
+            };
         
         // select random KV ID
         let kv_index = (rand_buf[0] as usize) % kvid_list.len();
         proxyip = kvid_list[kv_index].clone();
         
         // select random proxy ip from that KV list
-        let proxyip_index = (rand_buf[0] as usize) % proxy_kv[&proxyip].len();
-        proxyip = proxy_kv[&proxyip][proxyip_index].clone().replace(":", "-");
+        if let Some(list) = proxy_kv.get(&proxyip) {
+            if !list.is_empty() {
+                let proxyip_index = (rand_buf[0] as usize) % list.len();
+                proxyip = list[proxyip_index].clone().replace(":", "-");
+            } else {
+                return Response::error("Proxy list kosong", 500);
+            }
+        } else {
+            return Response::error(format!("KV key '{}' tidak ditemukan", proxyip), 500);
+        }
     }
 
     // lanjutkan seperti sebelumnya: kalau websocket dan proxyip cocok pola ip-port
@@ -150,7 +179,13 @@ async fn tunnel(req: Request, mut cx: RouteContext<Config>) -> Result<Response> 
         server.accept()?;
     
         wasm_bindgen_futures::spawn_local(async move {
-            let events = server.events().unwrap();
+            let events = match server.events() {
+                Ok(v) => v,
+                Err(e) => {
+                    console_error!("{}", e);
+                    return Response::error("WebSocket error", 500);
+                }
+            };
             if let Err(e) = ProxyStream::new(cx.data, &server, events).process().await {
                 console_error!("[tunnel]: {}", e);
             }
